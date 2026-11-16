@@ -4,7 +4,11 @@ from types import SimpleNamespace
 import pytest
 
 import swarms.utils.litellm_wrapper as litellm_wrapper
-from swarms.structs.council_as_judge import CouncilAsAJudge
+from swarms.structs.council_as_judge import (
+    EVAL_DIMENSIONS,
+    CouncilAsAJudge,
+    build_judge_prompt,
+)
 
 
 def test_judges_do_not_see_earlier_runs(monkeypatch):
@@ -138,3 +142,12 @@ def test_every_request_carries_the_task_once(monkeypatch, entry):
         asyncio.run(result)
 
     assert counts == [1] * (len(council.judge_agents) + 1)
+
+
+def test_each_judge_prompt_ends_with_the_task():
+    """A prompt ending on its instructions drew longer verdicts from the judges."""
+    for dimension in EVAL_DIMENSIONS:
+        prompt = build_judge_prompt(dimension, "TASK-MARK")
+
+        assert prompt.count("TASK-MARK") == 1
+        assert prompt.endswith("TASK-MARK.")

@@ -150,13 +150,9 @@ def build_judge_prompt(dimension_name: str, task: str) -> str:
     4. Suggest specific improvements where applicable
     5. Maintain a technical, analytical tone
 
-    --- BEGIN TASK AND RESPONSE ---
-    {task}
-    --- END TASK AND RESPONSE ---
-
     ### Technical Analysis ({dimension_name.upper()} Dimension):
     Provide a comprehensive analysis that would be valuable for response improvement.
-    """
+     \n\n Evaluate the following response for the {dimension_name} dimension: {task}."""
 
 
 @lru_cache(maxsize=128)
