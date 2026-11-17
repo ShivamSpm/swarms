@@ -1283,7 +1283,8 @@ class AutonomousAgentLoop:
                 )
 
             return self.agent._generate_final_summary(
-                streaming_callback=streaming_callback
+                streaming_callback=streaming_callback,
+                messages=self._transcript.to_messages(),
             )
 
         except Exception as error:

@@ -600,28 +600,39 @@ class TestStructuredTranscript:
         self, monkeypatch, tmp_path
     ):
         agent = build_agent()
-        seen = {}
-
-        def capture(task=None, *args, **kwargs):
-            seen.setdefault("messages", kwargs.get("messages"))
-            seen.setdefault("task", task)
-            return [
+        replies = [
+            plan(("step1", [])),
+            [
+                tool_call(
+                    "subtask_done",
+                    task_id="step1",
+                    summary="d",
+                    success=True,
+                )
+            ],
+            [
                 tool_call(
                     "complete_task",
                     task_id="m",
                     summary="d",
                     success=True,
                 )
-            ]
+            ],
+        ]
+        seen = []
+
+        def capture(task=None, *args, **kwargs):
+            seen.append((task, kwargs.get("messages")))
+            return replies.pop(0) if replies else "no further action"
 
         monkeypatch.setattr(agent, "call_llm", capture)
         agent.run("demo")
 
-        assert (
-            seen["task"] is None
-        ), "the loop still sends a task string"
-        assert isinstance(seen["messages"], list)
-        assert seen["messages"][0]["role"] == "user"
+        assert len(seen) == 3, "plan, step and final summary"
+        for task, messages in seen:
+            assert task is None, "the loop still sends a task string"
+            assert isinstance(messages, list)
+            assert messages[0]["role"] == "user"
 
 
 class TestModelFailureMovesToTheFallbackModel:
